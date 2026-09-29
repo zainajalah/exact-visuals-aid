@@ -93,6 +93,7 @@ export function RocketChase({ onCaught }: { onCaught: () => void }) {
 
       {/* surat */}
       <span
+        data-letter
         className="pointer-events-none absolute z-10 -translate-x-1/2 -translate-y-1/2 transition-transform duration-100"
         style={{ left: `${letter.x}%`, top: `${letter.y}%` }}
       >
