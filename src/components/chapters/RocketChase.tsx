@@ -102,6 +102,7 @@ export function RocketChase({ onCaught }: { onCaught: () => void }) {
 
       {/* roket */}
       <span
+        data-rocket
         className="pointer-events-none absolute z-10 -translate-x-1/2 -translate-y-1/2"
         style={{ left: `${rocket.x}%`, top: `${rocket.y}%` }}
       >
