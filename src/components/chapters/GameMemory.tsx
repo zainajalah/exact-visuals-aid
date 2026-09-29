@@ -21,13 +21,16 @@ export function GameMemory({ onComplete }: { onComplete: () => void }) {
   useEffect(() => {
     if (flipped.length !== 2) return;
     setLocked(true);
-    const [a, b] = flipped;
-    const same = cards[a].symbol === cards[b].symbol;
+    const [a, b] = flipped as [number, number];
+    const first = cards[a];
+    const second = cards[b];
+    if (!first || !second) return undefined;
+    const same = first.symbol === second.symbol;
     const timer = window.setTimeout(
       () => {
         if (same) {
           audio.play("success");
-          setMatched((m) => [...m, cards[a].symbol]);
+          setMatched((m) => [...m, first.symbol]);
         }
         setFlipped([]);
         setLocked(false);
@@ -42,10 +45,12 @@ export function GameMemory({ onComplete }: { onComplete: () => void }) {
       const timer = window.setTimeout(() => setWon(true), 700);
       return () => window.clearTimeout(timer);
     }
+    return undefined;
   }, [matched]);
 
   const reveal = (index: number) => {
-    if (locked || flipped.includes(index) || matched.includes(cards[index].symbol))
+    const card = cards[index];
+    if (!card || locked || flipped.includes(index) || matched.includes(card.symbol))
       return;
     audio.play("click");
     setFlipped((f) => [...f, index]);

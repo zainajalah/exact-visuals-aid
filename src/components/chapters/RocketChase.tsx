@@ -152,8 +152,14 @@ function Joystick({
   return (
     <div
       ref={baseRef}
-      onTouchStart={(e) => handle(e.touches[0].clientX, e.touches[0].clientY)}
-      onTouchMove={(e) => handle(e.touches[0].clientX, e.touches[0].clientY)}
+      onTouchStart={(e) => {
+        const touch = e.touches[0];
+        if (touch) handle(touch.clientX, touch.clientY);
+      }}
+      onTouchMove={(e) => {
+        const touch = e.touches[0];
+        if (touch) handle(touch.clientX, touch.clientY);
+      }}
       onTouchEnd={reset}
       onPointerDown={(e) => handle(e.clientX, e.clientY)}
       onPointerMove={(e) => e.buttons === 1 && handle(e.clientX, e.clientY)}

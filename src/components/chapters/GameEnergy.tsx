@@ -20,7 +20,7 @@ function makePlanets(): Planet[] {
     x: 12 + Math.random() * 74,
     y: 10 + Math.random() * 76,
     size: 34 + Math.random() * 26,
-    hue: PLANET_TONES[id],
+    hue: PLANET_TONES[id] ?? "bg-primary/70",
   }));
 }
 
@@ -36,6 +36,7 @@ export function GameEnergy({ onComplete }: { onComplete: () => void }) {
       const timer = window.setTimeout(() => setWon(true), 1200);
       return () => window.clearTimeout(timer);
     }
+    return undefined;
   }, [collected]);
 
   return (
