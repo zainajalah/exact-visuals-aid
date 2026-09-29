@@ -83,3 +83,16 @@ export const ENDING_TEXT = [
   "Dan semoga masih ada banyak cerita yang belum kita buat.",
   "See you in the next chapter.",
 ];
+
+// ==========================
+// EDIT PESAN RAHASIA (opsional, tidak wajib ditemukan)
+// ==========================
+export const SECRET_TEXT = {
+  openingStar: ["Found something?", "Maybe there are still a few things hidden here."],
+  constellation: "Some memories deserve their own constellation.",
+  secretPlanet: "You weren't supposed to find this.",
+  finalStar: ["Oh, you're still here.", "Okay... one last thing."],
+  finalMessage: "Terima kasih sudah sampai sejauh ini, Ericha.",
+  // muncul kalau semua pecahan kosmik terkumpul
+  allFragments: "Kamu menemukan semua pecahannya. Ternyata kamu memang teliti.",
+};
