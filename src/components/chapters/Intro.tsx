@@ -1,11 +1,20 @@
 import { useEffect, useState } from "react";
 import { Scene, ChapterMark, CosmicButton } from "@/components/cosmic/Scene";
-import { OPENING_TEXT } from "@/lib/birthday-config";
+import { OPENING_TEXT, SECRET_TEXT } from "@/lib/birthday-config";
 import { audio } from "@/lib/audio-engine";
 
 export function Intro({ onStart }: { onStart: () => void }) {
   const [step, setStep] = useState(0);
   const [leaving, setLeaving] = useState(false);
+  const [secret, setSecret] = useState(-1);
+
+  const findSecret = () => {
+    if (secret !== -1) return;
+    audio.play("chime");
+    setSecret(0);
+    window.setTimeout(() => setSecret(1), 2400);
+    window.setTimeout(() => setSecret(2), 5200);
+  };
 
   useEffect(() => {
     const timers = [600, 1800, 2800, 3600].map((delay, index) =>
@@ -17,6 +26,24 @@ export function Intro({ onStart }: { onStart: () => void }) {
   return (
     <Scene speed={0.06} density={1.2}>
       <ChapterMark index={1} />
+      {/* bintang yang sedikit berbeda (rahasia) */}
+      <button
+        type="button"
+        aria-label="bintang"
+        onClick={findSecret}
+        className="absolute right-[14%] top-[22%] z-20 grid h-11 w-11 place-items-center"
+      >
+        <span className="animate-pulse-soft block h-1 w-1 rounded-full bg-accent/90 shadow-[0_0_6px_var(--accent)]" />
+      </button>
+      <div
+        className={`pointer-events-none fixed inset-0 z-30 grid place-items-center bg-background/50 px-8 text-center transition-opacity duration-1000 ${
+          secret === 0 || secret === 1 ? "opacity-100" : "opacity-0"
+        }`}
+      >
+        <p className="font-display text-xl italic">
+          {secret >= 0 ? SECRET_TEXT.openingStar[Math.min(secret, 1)] : ""}
+        </p>
+      </div>
       <div
         className={`flex flex-col items-center transition-all duration-1000 ${
           leaving ? "scale-125 opacity-0 blur-sm" : "scale-100 opacity-100"

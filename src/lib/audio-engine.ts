@@ -4,7 +4,7 @@
 // Kalau file audio tidak ada, pakai Web Audio API sebagai fallback.
 // ==========================
 
-type Sfx = "click" | "success" | "whoosh" | "paper";
+type Sfx = "click" | "success" | "whoosh" | "paper" | "chime" | "hit";
 
 let ctx: AudioContext | null = null;
 let master: GainNode | null = null;
@@ -12,6 +12,8 @@ let musicEl: HTMLAudioElement | null = null;
 let ambientStop: (() => void) | null = null;
 let muted = false;
 let started = false;
+let ambientPad: GainNode | null = null;
+let mood = 1;
 
 function ensureContext() {
   if (typeof window === "undefined") return null;
@@ -86,7 +88,8 @@ function startAmbient() {
   const pad = audio.createGain();
   pad.gain.value = 0.0001;
   pad.connect(master);
-  pad.gain.exponentialRampToValueAtTime(0.06, audio.currentTime + 4);
+  pad.gain.exponentialRampToValueAtTime(Math.max(0.0001, 0.06 * mood), audio.currentTime + 4);
+  ambientPad = pad;
 
   const freqs = [110, 164.81, 220, 277.18];
   const oscs = freqs.map((f, i) => {
@@ -161,6 +164,13 @@ export const audio = {
         noise(0.7, 0.18, 900);
         tone(600, 0.6, "sawtooth", 0.05, 120);
         break;
+      case "chime":
+        tone(1318.5, 0.25, "sine", 0.07, 1760);
+        break;
+      case "hit":
+        noise(0.4, 0.2, 400);
+        tone(140, 0.35, "triangle", 0.12, 60);
+        break;
       case "paper":
         noise(0.35, 0.09, 2600);
         break;
@@ -191,4 +201,28 @@ let CONFIG_VOLUME = 0.2;
 export function setMusicVolume(v: number) {
   CONFIG_VOLUME = v;
   if (musicEl && !muted) musicEl.volume = v;
+}
+
+/** Atur suasana musik per bagian. 0 = hening, 1 = normal. Transisi halus. */
+export function setMood(level: number, seconds = 2) {
+  mood = level;
+  if (ctx && ambientPad) {
+    const now = ctx.currentTime;
+    ambientPad.gain.cancelScheduledValues(now);
+    ambientPad.gain.setValueAtTime(Math.max(0.0001, ambientPad.gain.value), now);
+    ambientPad.gain.exponentialRampToValueAtTime(Math.max(0.0001, 0.06 * level), now + Math.max(0.05, seconds));
+  }
+  if (musicEl && !muted) {
+    const el = musicEl;
+    const from = el.volume;
+    const to = Math.min(1, CONFIG_VOLUME * level);
+    const start = performance.now();
+    const step = () => {
+      const k = Math.min(1, (performance.now() - start) / (seconds * 1000 || 1));
+      if (musicEl !== el || muted) return;
+      el.volume = from + (to - from) * k;
+      if (k < 1) requestAnimationFrame(step);
+    };
+    requestAnimationFrame(step);
+  }
 }
