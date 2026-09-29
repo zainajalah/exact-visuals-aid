@@ -104,10 +104,14 @@ export function RocketChase({ onCaught }: { onCaught: () => void }) {
         className="pointer-events-none absolute z-10 -translate-x-1/2 -translate-y-1/2"
         style={{ left: `${rocket.x}%`, top: `${rocket.y}%` }}
       >
-        <span className="block text-3xl" style={{ transform: "rotate(45deg)" }}>
-          🚀
-        </span>
-        <span className="absolute left-1/2 top-full h-10 w-1 -translate-x-1/2 rounded-full bg-accent/50 blur-sm" />
+        <svg viewBox="0 0 24 34" className="block h-9 w-7 drop-shadow-[0_0_10px_rgba(220,200,255,0.5)]">
+          <path
+            d="M12 0c5 6 7.5 12 7.5 19 0 4-2 7-7.5 15C6.5 26 4.5 23 4.5 19 4.5 12 7 6 12 0Z"
+            className="fill-lavender"
+          />
+          <circle cx="12" cy="14" r="3" className="fill-navy" />
+        </svg>
+        <span className="absolute left-1/2 top-full h-10 w-1.5 -translate-x-1/2 rounded-full bg-accent/60 blur-[3px]" />
       </span>
 
       <p className="absolute top-[max(1rem,env(safe-area-inset-top))] w-full text-center text-[11px] tracking-[0.3em] text-muted-foreground">
