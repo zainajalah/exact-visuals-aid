@@ -68,7 +68,7 @@ export function RocketChase({ onCaught }: { onCaught: () => void }) {
       progressRef.current = p;
       setProgress(p);
 
-      if (dist < 9 && !caughtRef.current) {
+      if (dist < 11 && !caughtRef.current) {
         caughtRef.current = true;
         audio.play("success");
         setCaught(true);
