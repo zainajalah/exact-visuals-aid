@@ -90,7 +90,7 @@ function Journey() {
           type="button"
           aria-label="mute"
           onClick={() => setMuted(audio.toggleMute())}
-          className="fixed right-4 top-[max(1rem,env(safe-area-inset-top))] z-50 grid h-11 w-11 place-items-center rounded-full border border-border bg-white/5 text-sm backdrop-blur-md"
+          className="fixed right-4 top-[max(1rem,env(safe-area-inset-top))] z-[100] grid h-11 w-11 place-items-center rounded-full border border-border bg-white/5 text-sm backdrop-blur-md"
         >
           {muted ? "🔇" : "🔊"}
         </button>

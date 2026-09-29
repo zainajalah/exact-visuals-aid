@@ -65,8 +65,11 @@ export const LETTER_TEXT = {
 
 Selamat ulang tahun yang ke-20.
 
-Tulis suratmu sendiri di file src/lib/birthday-config.ts pada bagian LETTER_TEXT.content.
-Teks yang kamu tulis akan ditampilkan apa adanya, tanpa diubah.
+Selamat ulang tahun. Semoga hari ini setenang yang kamu mau.
+
+Makasih untuk semua cerita yang udah kita lewatin. Yang lucu, yang random, yang biasa aja tapi ternyata paling diinget.
+
+Semoga di umur 20 ini kamu nggak buru-buru sama diri sendiri. Pelan-pelan aja, kamu udah cukup.
 
 Sampai jumpa di cerita berikutnya.`,
 };
