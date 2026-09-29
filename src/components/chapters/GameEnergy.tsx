@@ -55,18 +55,22 @@ export function GameEnergy({ onComplete }: { onComplete: () => void }) {
               setPlanets((p) => p.filter((item) => item.id !== planet.id));
               setCollected((c) => c + 1);
             }}
-            className="animate-drift absolute -translate-x-1/2 -translate-y-1/2 rounded-full transition-transform active:scale-90"
+            className="absolute grid -translate-x-1/2 -translate-y-1/2 cursor-pointer touch-manipulation place-items-center rounded-full active:scale-90"
             style={{
               left: `${planet.x}%`,
               top: `${planet.y}%`,
-              width: planet.size,
-              height: planet.size,
-              animationDelay: `${planet.id * 0.4}s`,
+              width: Math.max(planet.size, 48),
+              height: Math.max(planet.size, 48),
             }}
           >
             <span
-              className={`block h-full w-full rounded-full ${planet.hue} shadow-[var(--glow-soft)]`}
-            />
+              className="animate-drift block h-full w-full"
+              style={{ animationDelay: `${planet.id * 0.4}s` }}
+            >
+              <span
+                className={`block h-full w-full rounded-full ${planet.hue} shadow-[var(--glow-soft)]`}
+              />
+            </span>
           </button>
         ))}
       </div>

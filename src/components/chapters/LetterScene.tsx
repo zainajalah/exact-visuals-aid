@@ -37,7 +37,7 @@ export function LetterScene({ onEnd }: { onEnd: () => void }) {
       </article>
 
       <div
-        className={`mt-8 transition-opacity duration-1000 ${open ? "opacity-100" : "opacity-0"}`}
+        className={`mt-8 transition-opacity duration-1000 ${open ? "opacity-100" : "pointer-events-none opacity-0"}`}
       >
         <CosmicButton
           variant="ghost"

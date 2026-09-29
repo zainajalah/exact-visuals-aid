@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Scene, ChapterMark, CosmicButton } from "@/components/cosmic/Scene";
 import { OPENING_TEXT } from "@/lib/birthday-config";
+import { audio } from "@/lib/audio-engine";
 
 export function Intro({ onStart }: { onStart: () => void }) {
   const [step, setStep] = useState(0);
@@ -65,13 +66,18 @@ export function Intro({ onStart }: { onStart: () => void }) {
 
         <div
           className={`mt-14 transition-all duration-1000 ${
-            step >= 4 ? "translate-y-0 opacity-100" : "translate-y-4 opacity-0"
+            step >= 4
+              ? "pointer-events-auto translate-y-0 opacity-100"
+              : "pointer-events-none translate-y-4 opacity-0"
           }`}
         >
           <CosmicButton
             onClick={() => {
+              if (leaving) return;
+              audio.play("click");
+              audio.start();
               setLeaving(true);
-              window.setTimeout(onStart, 1000);
+              window.setTimeout(onStart, 900);
             }}
           >
             {OPENING_TEXT.button}
