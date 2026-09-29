@@ -32,10 +32,15 @@ export function SealDots({ unlocked }: { unlocked: number }) {
       {[0, 1, 2, 3].map((i) => (
         <span
           key={i}
+          data-seal-state={unlocked >= 4 ? "final" : i < unlocked ? "completed" : i === unlocked ? "discovered" : "locked"}
           className={`h-3 w-3 rounded-full border transition-all duration-700 ${
-            i < unlocked
-              ? "border-accent bg-accent shadow-[var(--glow-gold)]"
-              : "border-border bg-transparent"
+            unlocked >= 4
+              ? "border-accent bg-transparent shadow-[var(--glow-gold)] [clip-path:polygon(0_0,45%_0,55%_50%,45%_100%,0_100%,0_0,55%_0,100%_0,100%_100%,60%_100%,50%_50%,60%_0)]"
+              : i < unlocked
+                ? `border-accent bg-accent shadow-[var(--glow-gold)] ${i === unlocked - 1 ? "animate-seal-pop" : ""}`
+                : i === unlocked
+                  ? "animate-pulse-soft border-accent/70 bg-accent/20 shadow-[0_0_10px_color-mix(in_oklab,var(--accent)_50%,transparent)]"
+                  : "border-border bg-transparent opacity-50"
           }`}
         />
       ))}
