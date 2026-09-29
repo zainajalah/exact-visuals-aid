@@ -65,6 +65,7 @@ export function RocketChase({ onCaught }: { onCaught: () => void }) {
     caught: false,
     secret: { x: 130, found: false },
     zone: 0,
+    revealed: false,
     id: 0,
   });
 
@@ -129,7 +130,8 @@ export function RocketChase({ onCaught }: { onCaught: () => void }) {
         if (zone.name !== "wormhole" && zone.name !== "deep space") st.checkpoint = zone.start;
       }
       const revealing = t >= REVEAL_START && t < ZONES[6]!.start;
-      if (revealing && st.zone !== 99 && t - REVEAL_START < 0.1) {
+      if (revealing && !st.revealed) {
+        st.revealed = true;
         setMood(0, 0.05); // hening sebentar
         later(() => setMood(0.45, 3), 1100);
       }
