@@ -60,7 +60,7 @@ export function Gallery({ onNext }: { onNext: () => void }) {
 
       <div className="relative mt-8 h-[520px] w-full max-w-sm">
         {CONFIG.photos.slice(0, 5).map((src, index) => {
-          const spot = LAYOUT[index];
+          const spot = LAYOUT[index] ?? LAYOUT[0]!;
           return (
             <button
               key={index}
@@ -79,7 +79,11 @@ export function Gallery({ onNext }: { onNext: () => void }) {
               }
               className="animate-drift absolute w-[42%] transition-transform duration-500 active:scale-95"
             >
-              <Polaroid src={src} caption={CONFIG.captions[index]} index={index} />
+              <Polaroid
+                src={src ?? ""}
+                caption={CONFIG.captions[index] ?? ""}
+                index={index}
+              />
             </button>
           );
         })}
@@ -105,8 +109,8 @@ export function Gallery({ onNext }: { onNext: () => void }) {
         >
           <div className="w-[70vw] max-w-xs animate-rise">
             <Polaroid
-              src={CONFIG.photos[active]}
-              caption={CONFIG.captions[active]}
+              src={CONFIG.photos[active] ?? ""}
+              caption={CONFIG.captions[active] ?? ""}
               index={active}
             />
           </div>
