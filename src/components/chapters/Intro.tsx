@@ -75,7 +75,6 @@ export function Intro({ onStart }: { onStart: () => void }) {
             onClick={() => {
               if (leaving) return;
               audio.play("click");
-              audio.start();
               setLeaving(true);
               window.setTimeout(onStart, 900);
             }}
