@@ -4,11 +4,11 @@ import { CONFIG, GALLERY_TEXT } from "@/lib/birthday-config";
 import { audio } from "@/lib/audio-engine";
 
 const LAYOUT = [
-  { top: "2%", left: "4%", tilt: "-7deg", delay: "0s" },
-  { top: "14%", left: "52%", tilt: "6deg", delay: "0.8s" },
-  { top: "38%", left: "16%", tilt: "3deg", delay: "1.6s" },
-  { top: "56%", left: "54%", tilt: "-5deg", delay: "0.4s" },
-  { top: "74%", left: "22%", tilt: "8deg", delay: "1.2s" },
+  { top: "0%", left: "4%", tilt: "-7deg", delay: "0s" },
+  { top: "11%", left: "52%", tilt: "6deg", delay: "0.8s" },
+  { top: "30%", left: "16%", tilt: "3deg", delay: "1.6s" },
+  { top: "45%", left: "54%", tilt: "-5deg", delay: "0.4s" },
+  { top: "62%", left: "22%", tilt: "8deg", delay: "1.2s" },
 ];
 
 function Polaroid({
@@ -58,7 +58,7 @@ export function Gallery({ onNext }: { onNext: () => void }) {
         </p>
       </header>
 
-      <div className="relative mt-8 h-[520px] w-full max-w-sm">
+      <div className="relative mt-6 h-[600px] w-full max-w-sm">
         {CONFIG.photos.slice(0, 5).map((src, index) => {
           const spot = LAYOUT[index] ?? LAYOUT[0]!;
           return (
