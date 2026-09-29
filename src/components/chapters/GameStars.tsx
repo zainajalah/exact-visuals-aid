@@ -79,7 +79,7 @@ export function GameStars({ onComplete }: { onComplete: () => void }) {
             type="button"
             onClick={tap}
             aria-label="bintang"
-            className="absolute grid h-14 w-14 -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full transition-all duration-300"
+            className="absolute grid h-16 w-16 -translate-x-1/2 -translate-y-1/2 cursor-pointer touch-manipulation place-items-center rounded-full transition-all duration-300"
             style={{ left: `${pos.x}%`, top: `${pos.y}%` }}
           >
             <span className="absolute h-14 w-14 rounded-full bg-primary/25 blur-lg" />

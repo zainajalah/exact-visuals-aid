@@ -72,8 +72,10 @@ export function GameMemory({ onComplete }: { onComplete: () => void }) {
               key={card.id}
               type="button"
               onClick={() => reveal(index)}
-              className="aspect-3/4 [perspective:800px]"
+              className="aspect-3/4 cursor-pointer touch-manipulation [perspective:800px]"
               aria-label="kartu"
+              data-card
+              data-symbol={card.symbol}
             >
               <span
                 className="relative block h-full w-full transition-transform duration-500 [transform-style:preserve-3d]"

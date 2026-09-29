@@ -43,7 +43,7 @@ export function CosmicButton({
   variant?: "solid" | "ghost";
 }) {
   const base =
-    "min-h-[48px] rounded-full px-7 text-sm tracking-[0.12em] uppercase transition-all duration-500 active:scale-[0.97]";
+    "relative z-20 min-h-[48px] cursor-pointer touch-manipulation select-none rounded-full px-7 text-sm tracking-[0.12em] uppercase transition-all duration-500 active:scale-[0.97]";
   const styles =
     variant === "solid"
       ? "bg-primary/90 text-primary-foreground shadow-[var(--glow-soft)] hover:bg-primary"

@@ -49,9 +49,9 @@ export function GameSequence({ onComplete }: { onComplete: () => void }) {
               key={spot.value}
               type="button"
               onClick={() => tap(spot.value)}
-              className={`absolute grid h-16 w-16 -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full border font-display text-2xl transition-all duration-700 ${
+              className={`absolute grid h-16 w-16 -translate-x-1/2 -translate-y-1/2 cursor-pointer touch-manipulation place-items-center rounded-full border font-display text-2xl transition-all duration-700 ${
                 done
-                  ? "scale-125 border-accent bg-accent/20 text-accent opacity-0 shadow-[var(--glow-gold)]"
+                  ? "pointer-events-none scale-125 border-accent bg-accent/20 text-accent opacity-0 shadow-[var(--glow-gold)]"
                   : "border-border bg-white/8 text-foreground"
               }`}
               style={{ left: `${spot.x}%`, top: `${spot.y}%` }}

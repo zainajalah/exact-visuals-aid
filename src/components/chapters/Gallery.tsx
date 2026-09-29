@@ -65,25 +65,29 @@ export function Gallery({ onNext }: { onNext: () => void }) {
             <button
               key={index}
               type="button"
+              aria-label={`foto ${index + 1}`}
               onClick={() => {
                 audio.play("click");
                 setActive(index);
               }}
-              style={
-                {
-                  top: spot.top,
-                  left: spot.left,
-                  "--tilt": spot.tilt,
-                  animationDelay: spot.delay,
-                } as React.CSSProperties
-              }
-              className="animate-drift absolute w-[42%] transition-transform duration-500 active:scale-95"
+              style={{ top: spot.top, left: spot.left }}
+              className="absolute z-20 w-[42%] cursor-pointer touch-manipulation active:scale-95"
             >
-              <Polaroid
-                src={src ?? ""}
-                caption={CONFIG.captions[index] ?? ""}
-                index={index}
-              />
+              <span
+                className="animate-drift block"
+                style={
+                  {
+                    "--tilt": spot.tilt,
+                    animationDelay: spot.delay,
+                  } as React.CSSProperties
+                }
+              >
+                <Polaroid
+                  src={src ?? ""}
+                  caption={CONFIG.captions[index] ?? ""}
+                  index={index}
+                />
+              </span>
             </button>
           );
         })}
