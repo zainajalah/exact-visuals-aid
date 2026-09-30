@@ -1,5 +1,5 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Loading } from "@/components/chapters/Loading";
 import { Intro } from "@/components/chapters/Intro";
 import { Gallery } from "@/components/chapters/Gallery";
@@ -13,7 +13,7 @@ import { RocketChase } from "@/components/chapters/RocketChase";
 import { LetterScene } from "@/components/chapters/LetterScene";
 import { Ending } from "@/components/chapters/Ending";
 import { CONFIG } from "@/lib/birthday-config";
-import { audio, setMusicVolume } from "@/lib/audio-engine";
+import { audio, setMood, setMusicVolume } from "@/lib/audio-engine";
 
 export const Route = createFileRoute("/")({
   head: () => ({
@@ -55,6 +55,15 @@ function Journey() {
   const [stage, setStage] = useState<Stage>("loading");
   const [seals, setSeals] = useState(0);
   const [muted, setMuted] = useState(false);
+
+  // suasana musik per bab (satu file musik: volume diatur halus)
+  useEffect(() => {
+    const moods: Partial<Record<Stage, number>> = {
+      intro: 0.7, gallery: 0.85, locked: 0.7, game1: 1, game2: 1, game3: 1, game4: 1, letter: 0.6,
+    };
+    const m = moods[stage];
+    if (m !== undefined) setMood(m, 2.5);
+  }, [stage]);
 
   const start = useCallback(() => {
     setMusicVolume(CONFIG.musicVolume);

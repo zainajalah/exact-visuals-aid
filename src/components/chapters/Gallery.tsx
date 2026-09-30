@@ -149,6 +149,7 @@ export function Gallery({ onNext }: { onNext: () => void }) {
       const id = window.setTimeout(() => setEnding(true), 1600);
       return () => window.clearTimeout(id);
     }
+    return undefined;
   }, [complete, active, ending]);
 
   const open = (index: number) => {
@@ -232,7 +233,7 @@ export function Gallery({ onNext }: { onNext: () => void }) {
         <button
           type="button"
           onClick={() => setActive(null)}
-          className="grain fixed inset-0 z-40 flex animate-[rise-in_0.8s_ease-out_both] flex-col items-center justify-center gap-5 bg-background/85 px-8 backdrop-blur-xl"
+          className="fixed inset-0 z-40 flex animate-[rise-in_0.8s_ease-out_both] flex-col items-center justify-center gap-5 bg-background/85 px-8 backdrop-blur-xl"
           style={{ boxShadow: "inset 0 0 160px 40px rgba(0,0,0,0.7)" }}
         >
           <div className="relative w-[70vw] max-w-xs animate-memory-open drop-shadow-[0_0_40px_rgba(240,210,160,0.25)]">
