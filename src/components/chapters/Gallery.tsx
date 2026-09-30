@@ -149,6 +149,7 @@ export function Gallery({ onNext }: { onNext: () => void }) {
       const id = window.setTimeout(() => setEnding(true), 1600);
       return () => window.clearTimeout(id);
     }
+    return undefined;
   }, [complete, active, ending]);
 
   const open = (index: number) => {
