@@ -236,7 +236,6 @@ export function Gallery({ onNext }: { onNext: () => void }) {
           className="fixed inset-0 z-40 flex animate-[rise-in_0.8s_ease-out_both] flex-col items-center justify-center gap-5 bg-background/85 px-8 backdrop-blur-xl"
           style={{ boxShadow: "inset 0 0 160px 40px rgba(0,0,0,0.7)" }}
         >
-          <span className="grain pointer-events-none absolute inset-0 opacity-60" />
           <div className="relative w-[70vw] max-w-xs animate-memory-open drop-shadow-[0_0_40px_rgba(240,210,160,0.25)]">
             <Polaroid
               src={CONFIG.photos[active] ?? ""}
