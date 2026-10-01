@@ -4,7 +4,7 @@
 // Kalau file audio tidak ada, pakai Web Audio API sebagai fallback.
 // ==========================
 
-type Sfx = "click" | "success" | "whoosh" | "paper" | "chime" | "hit";
+type Sfx = "click" | "success" | "whoosh" | "paper" | "chime" | "hit" | "capture" | "wormhole" | "envelope";
 
 let ctx: AudioContext | null = null;
 let master: GainNode | null = null;
@@ -170,6 +170,18 @@ export const audio = {
       case "hit":
         noise(0.4, 0.2, 400);
         tone(140, 0.35, "triangle", 0.12, 60);
+        break;
+      case "capture":
+        tone(392, 0.5, "sine", 0.1, 784);
+        setTimeout(() => tone(1046.5, 0.6, "sine", 0.06), 220);
+        break;
+      case "wormhole":
+        tone(80, 3, "sawtooth", 0.05, 900);
+        noise(2.5, 0.08, 1800);
+        break;
+      case "envelope":
+        noise(0.5, 0.1, 3200);
+        setTimeout(() => noise(0.4, 0.07, 1800), 260);
         break;
       case "paper":
         noise(0.35, 0.09, 2600);

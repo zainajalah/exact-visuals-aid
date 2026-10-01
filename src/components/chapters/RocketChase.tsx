@@ -145,7 +145,7 @@ export function RocketChase({ onCaught }: { onCaught: () => void }) {
         } else {
           setMood(zi >= 4 ? 1.1 : 0.9);
         }
-        if (CHECKPOINT_NAMES[zone.start] || zone.start === 0) st.checkpoint = zone.start === 68 ? 86 > t ? 54 : zone.start : zone.start;
+        if (CHECKPOINT_NAMES[zone.start] || zone.start === 0) st.checkpoint = zone.start;
       }
       const revealing = t >= REVEAL_START && t < ZONES[6]!.start;
       if (revealing && !st.revealed) {
