@@ -549,7 +549,7 @@ export function RocketChase({ onCaught }: { onCaught: () => void }) {
         <div className="h-px w-32 bg-border">
           <div className="h-px bg-accent/80" style={{ width: `${progress * 100}%` }} />
         </div>
-        <div className="flex items-center gap-4 text-[11px] tracking-[0.3em] text-muted-foreground">
+        <div className="flex flex-col items-center gap-1 whitespace-nowrap text-[10px] tracking-[0.3em] text-muted-foreground">
           <span aria-label="perisai">
             <span className="mr-2">SHIELD</span>
             {[0, 1, 2].map((i) => (

@@ -55,7 +55,6 @@ function Journey() {
   const [stage, setStage] = useState<Stage>("loading");
   const [seals, setSeals] = useState(0);
   const [muted, setMuted] = useState(false);
-  useEffect(() => { const q = new URLSearchParams(window.location.search).get("s"); if (q) setStage(q as Stage); }, []); // TEMP-TEST
 
   // suasana musik per bab (satu file musik: volume diatur halus)
   useEffect(() => {
