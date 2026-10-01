@@ -52,7 +52,7 @@ type Stage =
   | "ending";
 
 function Journey() {
-  const [stage, setStage] = useState<Stage>("loading");
+  const [stage, setStage] = useState<Stage>((typeof window !== "undefined" && (new URLSearchParams(window.location.search).get("s") as Stage)) || "loading");
   const [seals, setSeals] = useState(0);
   const [muted, setMuted] = useState(false);
 
