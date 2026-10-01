@@ -19,14 +19,21 @@ const ZONES = [
   { name: "planetary system", start: 54, spawn: 1.2, rockSpeed: 36 },
   { name: "wormhole", start: 68, spawn: 0, rockSpeed: 0 },
   { name: "deep space", start: 80, spawn: 0, rockSpeed: 0 },
+  { name: "final chase", start: 86, spawn: 1.3, rockSpeed: 42 },
 ] as const;
 const REVEAL_START = 76; // semuanya berhenti, lalu galaksi
-const CATCH_FROM = 84;
-const LETTER_STOP = 88;
-const END_T = 90;
+const CATCH_FROM = 100;
+const LETTER_STOP = 104;
+const END_T = 104;
+const CHECKPOINT_NAMES: Record<number, string> = {
+  14: "Checkpoint 1 · Asteroid Belt",
+  42: "Checkpoint 2 · Nebula",
+  68: "Checkpoint 3 · Wormhole",
+  86: "Checkpoint 4 · Final Chase",
+};
 const FRAG_TIMES = [4, 9, 17, 24, 30, 37, 47, 57, 62, 66];
 
-type Rock = { id: number; x: number; y: number; r: number; vx: number; vy: number; rot: number };
+type Rock = { id: number; x: number; y: number; r: number; vx: number; vy: number; rot: number; comet?: boolean };
 type Frag = { id: number; x: number; y: number };
 type Burst = { id: number; x: number; y: number; tone: "gold" | "violet" | "red" };
 
@@ -49,6 +56,7 @@ export function RocketChase({ onCaught }: { onCaught: () => void }) {
   const s = useRef({
     t: 0,
     rocket: { x: 18, y: 55 },
+    vel: { x: 0, y: 0 },
     letter: { x: 90, y: 30 },
     thrust: 0,
     shields: 3,
@@ -119,15 +127,25 @@ export function RocketChase({ onCaught }: { onCaught: () => void }) {
       // suasana musik per zona
       if (zi !== st.zone) {
         st.zone = zi;
-        if (zone.name === "wormhole") {
+        if (CHECKPOINT_NAMES[zone.start]) {
+          const label = CHECKPOINT_NAMES[zone.start]!;
+          setNotice(label);
+          later(() => setNotice((n) => (n === label ? null : n)), 1800);
+        }
+        if (zone.name === "final chase") {
           audio.play("whoosh");
+          setMood(1.2, 1);
+          setNotice("Not yet.");
+          later(() => setNotice((n) => (n === "Not yet." ? null : n)), 1800);
+        } else if (zone.name === "wormhole") {
+          audio.play("wormhole");
           setMood(1.6, 6);
         } else if (zone.name === "deep space") {
           setMood(0.35, 3);
         } else {
           setMood(zi >= 4 ? 1.1 : 0.9);
         }
-        if (zone.name !== "wormhole" && zone.name !== "deep space") st.checkpoint = zone.start;
+        if (CHECKPOINT_NAMES[zone.start] || zone.start === 0) st.checkpoint = zone.start === 68 ? 86 > t ? 54 : zone.start : zone.start;
       }
       const revealing = t >= REVEAL_START && t < ZONES[6]!.start;
       if (revealing && !st.revealed) {
@@ -153,16 +171,22 @@ export function RocketChase({ onCaught }: { onCaught: () => void }) {
         st.rocket.y += (58 - st.rocket.y) * 0.02;
       } else if (!st.failing && !st.caught) {
         st.slow = Math.max(0, st.slow - dtReal);
-        const base = zone.name === "deep space" ? 34 : zi >= 4 ? 58 : 50;
-        const speed = base * (st.slow > 0 ? 0.45 : 1) * dtReal;
-        st.rocket.x = Math.max(5, Math.min(92, st.rocket.x + dx * speed));
-        st.rocket.y = Math.max(10, Math.min(80, st.rocket.y + dy * speed));
+        const base = zone.name === "deep space" ? 34 : zone.name === "final chase" ? 64 : zi >= 4 ? 58 : 50;
+        const speed = base * (st.slow > 0 ? 0.45 : 1);
+        // sedikit inersia: akselerasi & deselerasi halus, tetap responsif
+        st.vel.x += (dx * speed - st.vel.x) * 0.22;
+        st.vel.y += (dy * speed - st.vel.y) * 0.22;
+        st.rocket.x = Math.max(5, Math.min(92, st.rocket.x + st.vel.x * dtReal));
+        st.rocket.y = Math.max(10, Math.min(80, st.rocket.y + st.vel.y * dtReal));
       }
       st.invuln = Math.max(0, st.invuln - dtReal);
 
       // surat
       if (zone.name === "deep space") {
-        const k2 = Math.min(1, (t - ZONES[6]!.start) / (LETTER_STOP - ZONES[6]!.start));
+        // terlihat, tapi masih jauh
+        st.letter = { x: 80 + Math.sin(t * 0.5) * 4, y: 34 + Math.cos(t * 0.6) * 5 };
+      } else if (zone.name === "final chase") {
+        const k2 = Math.min(1, (t - ZONES[7]!.start) / (LETTER_STOP - ZONES[7]!.start));
         const wob = 1 - k2;
         st.letter = {
           x: 92 - k2 * 20 + Math.sin(t * 0.8) * 3 * wob,
@@ -178,7 +202,21 @@ export function RocketChase({ onCaught }: { onCaught: () => void }) {
         st.spawnAcc += dtReal * fast * zone.spawn * intensity;
         while (st.spawnAcc >= 1) {
           st.spawnAcc -= 1;
-          const r = 14 + Math.random() * 18;
+          // di zona komet & final: sebagian obstacle berupa komet diagonal
+          if ((zone.name === "comet pass" || zone.name === "final chase") && Math.random() < 0.45) {
+            st.rocks.push({
+              id: ++st.id,
+              x: 60 + Math.random() * 50,
+              y: -8,
+              r: 12,
+              vx: -(20 + Math.random() * 25),
+              vy: 30 + Math.random() * 20,
+              rot: 0,
+              comet: true,
+            });
+            continue;
+          }
+          const r = 10 + Math.random() * 26;
           st.rocks.push({
             id: ++st.id,
             x: 108,
@@ -202,7 +240,7 @@ export function RocketChase({ onCaught }: { onCaught: () => void }) {
         r.y += r.vy * moveDt;
         r.rot += 20 * moveDt;
       });
-      st.rocks = st.rocks.filter((r) => r.x > -10);
+      st.rocks = st.rocks.filter((r) => r.x > -10 && r.y < 110);
       st.frags.forEach((f) => (f.x -= 16 * moveDt));
       st.frags = st.frags.filter((f) => f.x > -5);
 
@@ -221,7 +259,7 @@ export function RocketChase({ onCaught }: { onCaught: () => void }) {
           setShake((n) => n + 1);
           if (st.shields <= 0) {
             st.failing = true;
-            setNotice("Tenang, coba lagi.");
+            setNotice("Almost there.");
             later(() => {
               st.t = st.checkpoint;
               st.fragIdx = FRAG_TIMES.filter((ft) => ft < st.checkpoint).length;
@@ -268,7 +306,8 @@ export function RocketChase({ onCaught }: { onCaught: () => void }) {
         toPx(st.letter.x - st.rocket.x, st.letter.y - st.rocket.y) < 48
       ) {
         st.caught = true;
-        audio.play("success");
+        audio.play("capture");
+        st.rocks = [];
         setMood(0.3, 2);
         setCaughtLine("Got you.");
         later(() => setCaughtLine("Now..."), 2600);
@@ -296,6 +335,7 @@ export function RocketChase({ onCaught }: { onCaught: () => void }) {
   const inWormhole = zone.name === "wormhole" && t < REVEAL_START;
   const revealing = t >= REVEAL_START && t < ZONES[6]!.start;
   const deep = zone.name === "deep space";
+  const tilt = Math.max(-18, Math.min(18, st.vel.y * 0.35));
   const pullBack = t >= 44 && t < 48; // kamera mundur di nebula
   const progress = Math.min(1, t / END_T);
   const cameraScale = pullBack ? 0.5 : revealing ? 1 + Math.max(0, 1 - (t - REVEAL_START) / 3) * 0.25 : 1;
@@ -385,7 +425,23 @@ export function RocketChase({ onCaught }: { onCaught: () => void }) {
           )}
 
           {/* asteroid */}
-          {st.rocks.map((r) => (
+          {st.rocks.map((r) => r.comet ? (
+            <span
+              key={r.id}
+              data-rock
+              className="pointer-events-none absolute h-3 w-3 -translate-x-1/2 -translate-y-1/2 rounded-full bg-foreground shadow-[0_0_14px_var(--accent)]"
+              style={{ left: `${r.x}%`, top: `${r.y}%` }}
+            >
+              <span
+                className="absolute right-1/2 top-1/2 h-1.5 w-28 origin-right rounded-full"
+                style={{
+                  transform: `translateY(-50%) rotate(${(Math.atan2(r.vy, r.vx) * 180) / Math.PI + 180}deg)`,
+                  transformOrigin: "100% 50%",
+                  background: "linear-gradient(90deg, transparent, var(--accent))",
+                }}
+              />
+            </span>
+          ) : (
             <span
               key={r.id}
               data-rock
@@ -435,10 +491,12 @@ export function RocketChase({ onCaught }: { onCaught: () => void }) {
             style={{
               left: `${st.letter.x}%`,
               top: `${st.letter.y}%`,
-              transform: `translate(-50%,-50%) scale(${t >= CATCH_FROM || deep ? 1 : 0.55})`,
+              transform: `translate(-50%,-50%) scale(${t >= CATCH_FROM ? 1 : deep ? 0.7 : 0.55})`,
+              opacity: planet !== null && Math.abs(st.letter.x - (100 - planet * 150 + 30)) < 25 ? 0.15 : 1,
             }}
           >
             <span className="paper-surface block h-10 w-14 rounded-[3px] shadow-[var(--glow-gold)]" />
+            <span className="absolute left-full top-1/2 h-1 w-16 -translate-y-1/2 rounded-full bg-gradient-to-r from-accent/50 to-transparent blur-[2px]" />
           </span>
 
           {/* roket */}
@@ -449,7 +507,7 @@ export function RocketChase({ onCaught }: { onCaught: () => void }) {
             }`}
             style={{ left: `${st.rocket.x}%`, top: `${st.rocket.y}%` }}
           >
-            <span className="block rotate-90">
+            <span className="block transition-transform duration-150" style={{ transform: `rotate(${90 + tilt}deg)` }}>
               <svg viewBox="0 0 24 34" className="block h-9 w-7 drop-shadow-[0_0_10px_rgba(220,200,255,0.5)]">
                 <path
                   d="M12 0c5 6 7.5 12 7.5 19 0 4-2 7-7.5 15C6.5 26 4.5 23 4.5 19 4.5 12 7 6 12 0Z"
@@ -493,14 +551,15 @@ export function RocketChase({ onCaught }: { onCaught: () => void }) {
         </div>
         <div className="flex items-center gap-4 text-[11px] tracking-[0.3em] text-muted-foreground">
           <span aria-label="perisai">
+            <span className="mr-2">SHIELD</span>
             {[0, 1, 2].map((i) => (
               <span key={i} className={i < st.shields ? "text-accent" : "opacity-30"}>
-                ◆
+                ●
               </span>
             ))}
           </span>
           <span data-fragments>
-            ✦ {String(st.collected).padStart(2, "0")}
+            COSMIC FRAGMENTS {String(st.collected).padStart(2, "0")}
             <span className="opacity-40">/{FRAGMENT_TOTAL}</span>
           </span>
         </div>
