@@ -6,5 +6,5 @@
 - [x] Cinematic pass: memory counter, photo opening, constellation portal, secret opening/photo/final stars, seal states, cinematic assembly + surprise escape, music moods with silence.
 
 ## Open
-- [ ] Rocket chase gaps: "Not yet." final chase, "Almost there.", checkpoint labels, SHIELD/COSMIC FRAGMENTS labels, diagonal comets, rocket tilt/trail/inertia.
-- [ ] Full-experience brief: envelope-opening moment before letter, extra sounds (engine, impact, wormhole, capture, envelope).
+- [x] Rocket chase gaps: "Not yet." final chase, "Almost there.", checkpoint labels, SHIELD/COSMIC FRAGMENTS labels, diagonal comets, rocket tilt/trail/inertia.
+- [x] Full-experience brief: envelope-opening moment before letter, extra sounds (engine, impact, wormhole, capture, envelope).
