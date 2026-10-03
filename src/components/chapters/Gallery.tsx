@@ -157,6 +157,16 @@ export function Gallery({ onNext }: { onNext: () => void }) {
     setActive(index);
     setSeen((prev) => new Set(prev).add(index));
   };
+  const touchStart = useRef<{ x: number; y: number } | null>(null);
+  const go = (dir: number) => {
+    setActive((cur) => {
+      if (cur === null) return cur;
+      const next = (cur + dir + total) % total;
+      setSeen((prev) => new Set(prev).add(next));
+      audio.play("paper");
+      return next;
+    });
+  };
 
   return (
     <Scene speed={0.09} className="justify-start pt-16">
@@ -230,30 +240,62 @@ export function Gallery({ onNext }: { onNext: () => void }) {
       </div>
 
       {active !== null && (
-        <button
-          type="button"
+        <div
+          role="dialog"
+          aria-modal="true"
+          aria-label="foto"
+          data-photo-viewer
           onClick={() => setActive(null)}
-          className="fixed inset-0 z-40 flex animate-[rise-in_0.8s_ease-out_both] flex-col items-center justify-center gap-5 bg-background/85 px-8 backdrop-blur-xl"
-          style={{ boxShadow: "inset 0 0 160px 40px rgba(0,0,0,0.7)" }}
+          onTouchStart={(e) => {
+            const t = e.touches[0];
+            if (t) touchStart.current = { x: t.clientX, y: t.clientY };
+          }}
+          onTouchEnd={(e) => {
+            const s = touchStart.current;
+            const t = e.changedTouches[0];
+            touchStart.current = null;
+            if (!s || !t) return;
+            const dx = t.clientX - s.x;
+            const dy = t.clientY - s.y;
+            if (Math.abs(dx) > 50 && Math.abs(dx) > Math.abs(dy) * 1.5) {
+              e.preventDefault();
+              go(dx < 0 ? 1 : -1);
+            }
+          }}
+          className="fixed inset-0 z-40 flex animate-[rise-in_0.5s_ease-out_both] flex-col bg-black"
+          style={{
+            paddingTop: "env(safe-area-inset-top)",
+            paddingBottom: "env(safe-area-inset-bottom)",
+          }}
         >
-          <div className="relative w-[70vw] max-w-xs animate-memory-open drop-shadow-[0_0_40px_rgba(240,210,160,0.25)]">
-            <Polaroid
-              src={CONFIG.photos[active] ?? ""}
-              caption={CONFIG.captions[active] ?? ""}
-              index={active}
-            />
-            {/* partikel halus */}
-            {Array.from({ length: 8 }, (_, i) => (
-              <span
-                key={i}
-                className="animate-pulse-soft pointer-events-none absolute h-1 w-1 rounded-full bg-accent"
-                style={{
-                  left: `${(i * 37) % 110 - 5}%`,
-                  top: `${(i * 53) % 110 - 5}%`,
-                  animationDelay: `${i * 0.4}s`,
+          <div className="relative min-h-0 flex-1">
+            {CONFIG.photos[active] ? (
+              <img
+                key={active}
+                src={CONFIG.photos[active]}
+                alt={CONFIG.captions[active] ?? ""}
+                onClick={(e) => {
+                  // tutup hanya kalau tap jatuh di area hitam di luar foto
+                  const img = e.currentTarget;
+                  const r = img.getBoundingClientRect();
+                  const scale = Math.min(r.width / (img.naturalWidth || 1), r.height / (img.naturalHeight || 1));
+                  const w = img.naturalWidth * scale, h = img.naturalHeight * scale;
+                  const x = e.clientX - r.left - (r.width - w) / 2;
+                  const y = e.clientY - r.top - (r.height - h) / 2;
+                  if (x >= 0 && y >= 0 && x <= w && y <= h) e.stopPropagation();
                 }}
+                draggable={false}
+                className="absolute inset-0 m-auto h-full w-full animate-memory-open select-none object-contain"
+                style={{ maxWidth: "100%", maxHeight: "100%" }}
               />
-            ))}
+            ) : (
+              <div
+                onClick={(e) => e.stopPropagation()}
+                className="absolute inset-0 m-auto h-fit w-[70vw] max-w-xs"
+              >
+                <Polaroid src="" caption={CONFIG.captions[active] ?? ""} index={active} />
+              </div>
+            )}
             {/* detail rahasia di foto ke-3 (tidak diberi tanda) */}
             {active === 2 && (
               <span
@@ -266,7 +308,7 @@ export function Gallery({ onNext }: { onNext: () => void }) {
                   setSparks((p) => [...p, { id, x: e.clientX - rect.left, y: e.clientY - rect.top }]);
                   window.setTimeout(() => setSparks((p) => p.filter((sp) => sp.id !== id)), 1000);
                 }}
-                className="absolute right-[6%] top-[6%] h-12 w-12"
+                className="absolute left-1/2 top-1/3 h-12 w-12 translate-x-[30%]"
               >
                 {sparks.map((sp) => (
                   <span key={sp.id} className="absolute" style={{ left: sp.x, top: sp.y }}>
@@ -285,13 +327,32 @@ export function Gallery({ onNext }: { onNext: () => void }) {
               </span>
             )}
           </div>
-          <p className="animate-rise font-display text-xl italic text-foreground [animation-delay:700ms]">
-            {CONFIG.captions[active]}
-          </p>
-          <span className="text-[10px] uppercase tracking-[0.3em] text-muted-foreground">
-            tap untuk menutup
-          </span>
-        </button>
+          <div className="flex shrink-0 items-center justify-between gap-3 px-4 py-3">
+            <button
+              type="button"
+              aria-label="foto sebelumnya"
+              onClick={(e) => { e.stopPropagation(); go(-1); }}
+              className="grid h-11 w-11 shrink-0 place-items-center rounded-full border border-foreground/20 text-foreground/80"
+            >‹</button>
+            <p className="min-w-0 truncate text-center font-display text-lg italic text-foreground">
+              {CONFIG.captions[active]} <span className="ml-2 text-[10px] not-italic tracking-[0.3em] text-muted-foreground">{active + 1}/{total}</span>
+            </p>
+            <button
+              type="button"
+              aria-label="foto berikutnya"
+              onClick={(e) => { e.stopPropagation(); go(1); }}
+              className="grid h-11 w-11 shrink-0 place-items-center rounded-full border border-foreground/20 text-foreground/80"
+            >›</button>
+          </div>
+          <button
+            type="button"
+            aria-label="tutup"
+            data-viewer-close
+            onClick={(e) => { e.stopPropagation(); setActive(null); }}
+            className="absolute left-3 z-10 grid h-11 w-11 place-items-center rounded-full bg-black/60 text-xl text-foreground backdrop-blur"
+            style={{ top: "calc(env(safe-area-inset-top) + 12px)" }}
+          >✕</button>
+        </div>
       )}
 
       {ending && <Constellation onDone={onNext} />}
