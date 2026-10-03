@@ -1,3 +1,5 @@
+import backsound from "@/assets/backsound.mp3.asset.json";
+
 // ==========================
 // EDIT SEMUA ISI WEBSITE DI FILE INI
 // ==========================
@@ -26,7 +28,7 @@ export const CONFIG = {
   // Isi dengan link/lokasi musik, mis. "/music.mp3".
   // Kalau kosong, website memakai musik ambient sintetis (tetap jalan).
   // ==========================
-  music: "",
+  music: backsound.url,
   musicVolume: 0.2,
 };
 
