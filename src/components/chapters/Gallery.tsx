@@ -274,7 +274,16 @@ export function Gallery({ onNext }: { onNext: () => void }) {
                 key={active}
                 src={CONFIG.photos[active]}
                 alt={CONFIG.captions[active] ?? ""}
-                onClick={(e) => e.stopPropagation()}
+                onClick={(e) => {
+                  // tutup hanya kalau tap jatuh di area hitam di luar foto
+                  const img = e.currentTarget;
+                  const r = img.getBoundingClientRect();
+                  const scale = Math.min(r.width / (img.naturalWidth || 1), r.height / (img.naturalHeight || 1));
+                  const w = img.naturalWidth * scale, h = img.naturalHeight * scale;
+                  const x = e.clientX - r.left - (r.width - w) / 2;
+                  const y = e.clientY - r.top - (r.height - h) / 2;
+                  if (x >= 0 && y >= 0 && x <= w && y <= h) e.stopPropagation();
+                }}
                 draggable={false}
                 className="absolute inset-0 m-auto h-full w-full animate-memory-open select-none object-contain"
                 style={{ maxWidth: "100%", maxHeight: "100%" }}
