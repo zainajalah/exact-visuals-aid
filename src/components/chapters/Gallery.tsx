@@ -349,7 +349,7 @@ export function Gallery({ onNext }: { onNext: () => void }) {
             aria-label="tutup"
             data-viewer-close
             onClick={(e) => { e.stopPropagation(); setActive(null); }}
-            className="absolute right-3 z-10 grid h-11 w-11 place-items-center rounded-full bg-black/60 text-xl text-foreground backdrop-blur"
+            className="absolute left-3 z-10 grid h-11 w-11 place-items-center rounded-full bg-black/60 text-xl text-foreground backdrop-blur"
             style={{ top: "calc(env(safe-area-inset-top) + 12px)" }}
           >✕</button>
         </div>
