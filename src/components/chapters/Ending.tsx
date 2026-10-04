@@ -31,7 +31,7 @@ export function Ending() {
     SECRET_TEXT.finalStar[0],
     SECRET_TEXT.finalStar[1],
     SECRET_TEXT.finalMessage,
-    ...(journey.fragments >= FRAGMENT_TOTAL ? [SECRET_TEXT.allFragments] : []),
+    ...(journey.gates >= 1 || journey.fragments >= FRAGMENT_TOTAL ? [SECRET_TEXT.allFragments] : []),
   ];
 
   const tapStar = () => {

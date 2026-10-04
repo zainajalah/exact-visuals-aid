@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { Scene, ChapterMark } from "@/components/cosmic/Scene";
 import { audio, setMood } from "@/lib/audio-engine";
 import { SECRET_TEXT } from "@/lib/birthday-config";
-import { FRAGMENT_TOTAL, journey } from "@/lib/journey-state";
+import { FRAGMENT_TOTAL, clampFragments, journey } from "@/lib/journey-state";
 
 /**
  * Chapter 9: kejar suratnya melintasi 6 zona (~90 detik).
@@ -50,6 +50,9 @@ export function RocketChase({ onCaught }: { onCaught: () => void }) {
   const [caughtLine, setCaughtLine] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const [shake, setShake] = useState(0);
+  const [gate, setGate] = useState(0);
+  const [gateFill, setGateFill] = useState(0);
+  const [, setPing] = useState(0);
 
   const keys = useRef<Record<string, boolean>>({});
   const joystick = useRef({ dx: 0, dy: 0, active: false });
@@ -66,6 +69,10 @@ export function RocketChase({ onCaught }: { onCaught: () => void }) {
     frags: [] as Frag[],
     fragIdx: 0,
     collected: 0,
+    collectedAtCheckpoint: 0,
+    fragsTaken: 0,
+    fragsTakenAtCheckpoint: 0,
+    gating: false,
     bursts: [] as Burst[],
     spawnAcc: 0,
     checkpoint: 0,
@@ -79,6 +86,7 @@ export function RocketChase({ onCaught }: { onCaught: () => void }) {
 
   useEffect(() => {
     journey.fragments = 0;
+    journey.gates = 0;
     setMood(0.9);
     const down = (e: KeyboardEvent) => {
       keys.current[e.key.toLowerCase()] = true;
@@ -108,6 +116,62 @@ export function RocketChase({ onCaught }: { onCaught: () => void }) {
       later(() => {
         st.bursts = st.bursts.filter((b) => b.id !== id);
       }, 950);
+    };
+
+    const flash = (msg: string, ms = 1600) => {
+      setNotice(msg);
+      later(() => setNotice((n) => (n === msg ? null : n)), ms);
+    };
+
+    // satu-satunya pintu untuk menambah energi: selalu dibatasi 0..10
+    const award = (x: number, y: number) => {
+      const st = s.current;
+      burst(x, y, "violet");
+      if (st.gating || st.collected >= FRAGMENT_TOTAL) {
+        flash("COSMIC ENERGY FULL", 1200);
+        return;
+      }
+      st.collected = clampFragments(st.collected + 1);
+      st.fragsTaken += 1;
+      journey.fragments = st.collected;
+      audio.play("chime");
+      setPing((p) => p + 1);
+      if (st.collected >= FRAGMENT_TOTAL) startGate();
+    };
+
+    // 10/10 → gerbang kosmik: energi dipakai, lalu kembali ke 0
+    const startGate = () => {
+      const st = s.current;
+      st.gating = true;
+      flash("COSMIC ENERGY FULL", 1400);
+      later(() => flash("ROCKET SYSTEM READY", 1400), 1500);
+      later(() => {
+        setGate(1);
+        audio.play("wormhole");
+        for (let i = 1; i <= FRAGMENT_TOTAL; i++) {
+          later(() => {
+            st.collected = clampFragments(FRAGMENT_TOTAL - i);
+            journey.fragments = st.collected;
+            setGateFill(i);
+            audio.play("click");
+          }, i * 160);
+        }
+      }, 3000);
+      later(() => {
+        setGate(2);
+        audio.play("capture");
+      }, 5000);
+      later(() => {
+        setGate(3);
+        audio.play("whoosh");
+        journey.gates += 1;
+        flash("Gate open.", 1400);
+      }, 6200);
+      later(() => {
+        setGate(0);
+        setGateFill(0);
+        st.gating = false;
+      }, 7700);
     };
 
     const tick = (now: number) => {
@@ -145,7 +209,11 @@ export function RocketChase({ onCaught }: { onCaught: () => void }) {
         } else {
           setMood(zi >= 4 ? 1.1 : 0.9);
         }
-        if (CHECKPOINT_NAMES[zone.start] || zone.start === 0) st.checkpoint = zone.start;
+        if (CHECKPOINT_NAMES[zone.start] || zone.start === 0) {
+          st.checkpoint = zone.start;
+          st.collectedAtCheckpoint = st.collected;
+          st.fragsTakenAtCheckpoint = st.fragsTaken;
+        }
       }
       const revealing = t >= REVEAL_START && t < ZONES[6]!.start;
       if (revealing && !st.revealed) {
@@ -263,6 +331,10 @@ export function RocketChase({ onCaught }: { onCaught: () => void }) {
             later(() => {
               st.t = st.checkpoint;
               st.fragIdx = FRAG_TIMES.filter((ft) => ft < st.checkpoint).length;
+              // kembalikan energi ke kondisi saat checkpoint (pecahan akan muncul lagi)
+              st.collected = clampFragments(st.collectedAtCheckpoint);
+              st.fragsTaken = st.fragsTakenAtCheckpoint;
+              journey.fragments = st.collected;
               st.rocks = [];
               st.frags = [];
               st.shields = 3;
@@ -276,10 +348,7 @@ export function RocketChase({ onCaught }: { onCaught: () => void }) {
       }
       st.frags = st.frags.filter((f) => {
         if (toPx(f.x - st.rocket.x, f.y - st.rocket.y) < 34) {
-          st.collected += 1;
-          journey.fragments = st.collected;
-          audio.play("chime");
-          burst(f.x, f.y, "gold");
+          award(f.x, f.y);
           return false;
         }
         return true;
@@ -338,6 +407,7 @@ export function RocketChase({ onCaught }: { onCaught: () => void }) {
   const tilt = Math.max(-18, Math.min(18, st.vel.y * 0.35));
   const pullBack = t >= 44 && t < 48; // kamera mundur di nebula
   const progress = Math.min(1, t / END_T);
+  const energy = clampFragments(st.collected);
   const cameraScale = pullBack ? 0.5 : revealing ? 1 + Math.max(0, 1 - (t - REVEAL_START) / 3) * 0.25 : 1;
   const bigRock = t >= 15 && t < 21 ? (t - 15) / 6 : null;
   const comet = t >= 33 && t < 37 ? (t - 33) / 4 : null;
@@ -456,14 +526,24 @@ export function RocketChase({ onCaught }: { onCaught: () => void }) {
             />
           ))}
 
-          {/* pecahan kosmik */}
+          {/* pecahan kosmik: kristal cyan-violet berputar */}
           {st.frags.map((f) => (
             <span
               key={f.id}
               data-fragment
-              className="pointer-events-none absolute h-3 w-2 -translate-x-1/2 -translate-y-1/2 rotate-45 bg-accent shadow-[var(--glow-gold)]"
+              className="pointer-events-none absolute -translate-x-1/2 -translate-y-1/2"
               style={{ left: `${f.x}%`, top: `${f.y}%` }}
-            />
+            >
+              <span className="absolute left-1/2 top-1/2 h-8 w-8 -translate-x-1/2 -translate-y-1/2 rounded-full bg-violet/50 blur-md" />
+              <span
+                className="block h-4 w-3 bg-gradient-to-b from-[oklch(0.9_0.12_200)] to-lavender shadow-[0_0_14px_oklch(0.85_0.14_200)]"
+                style={{ clipPath: "polygon(50% 0, 100% 50%, 50% 100%, 0 50%)", animation: "orbit-spin 3s linear infinite" }}
+              />
+              <span className="absolute left-1/2 top-1/2 h-6 w-6 -translate-x-1/2 -translate-y-1/2" style={{ animation: "orbit-spin 2s linear infinite" }}>
+                <span className="absolute -top-1 left-1/2 h-1 w-1 rounded-full bg-lavender" />
+              </span>
+              <span className="absolute left-3 top-1/2 h-px w-6 -translate-y-1/2 bg-gradient-to-r from-lavender/60 to-transparent" />
+            </span>
           ))}
 
           {/* ledakan kecil */}
@@ -558,12 +638,52 @@ export function RocketChase({ onCaught }: { onCaught: () => void }) {
               </span>
             ))}
           </span>
-          <span data-fragments>
-            COSMIC FRAGMENTS {String(st.collected).padStart(2, "0")}
-            <span className="opacity-40">/{FRAGMENT_TOTAL}</span>
+          <span data-fragments className={energy >= FRAGMENT_TOTAL ? "text-lavender text-glow" : ""}>
+            COSMIC ENERGY {energy}
+            <span className="opacity-40"> / {FRAGMENT_TOTAL}</span>
+          </span>
+          <span className="flex gap-[3px]" aria-hidden>
+            {Array.from({ length: FRAGMENT_TOTAL }, (_, i) => (
+              <span
+                key={i}
+                className={`h-1.5 w-2 rounded-[1px] transition-all duration-300 ${
+                  i < energy ? "bg-lavender shadow-[var(--glow-soft)]" : "bg-border"
+                }`}
+              />
+            ))}
           </span>
         </div>
       </div>
+
+      {/* gerbang kosmik */}
+      {gate > 0 && (
+        <div className="pointer-events-none absolute inset-0 z-30 grid place-items-center">
+          <div
+            className="relative grid h-[60vmin] w-[60vmin] place-items-center rounded-full border-2 border-lavender/70 transition-all duration-[1500ms]"
+            style={{
+              boxShadow: gate >= 2 ? "0 0 80px var(--lavender), inset 0 0 80px var(--lavender)" : "var(--glow-soft)",
+              transform: `scale(${gate >= 3 ? 2.6 : 1})`,
+              opacity: gate >= 3 ? 0 : 1,
+              animation: "orbit-spin 8s linear infinite",
+            }}
+          >
+            {Array.from({ length: FRAGMENT_TOTAL }, (_, i) => {
+              const a = (i / FRAGMENT_TOTAL) * Math.PI * 2;
+              return (
+                <span
+                  key={i}
+                  className="absolute h-3 w-2 rotate-45 bg-lavender shadow-[var(--glow-soft)] transition-all duration-700"
+                  style={{
+                    left: `calc(50% + ${Math.cos(a) * 30}vmin)`,
+                    top: `calc(50% + ${Math.sin(a) * 30}vmin)`,
+                    opacity: i < gateFill ? 1 : 0,
+                  }}
+                />
+              );
+            })}
+          </div>
+        </div>
+      )}
 
       {(notice || caughtLine) && (
         <p className="animate-rise pointer-events-none absolute top-[38%] z-40 w-full px-8 text-center font-display text-2xl tracking-[0.12em] text-foreground">
