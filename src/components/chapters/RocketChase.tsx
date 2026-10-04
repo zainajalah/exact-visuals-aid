@@ -2,7 +2,7 @@ import { useEffect, useRef, useState } from "react";
 import { Scene, ChapterMark } from "@/components/cosmic/Scene";
 import { audio, setMood } from "@/lib/audio-engine";
 import { SECRET_TEXT } from "@/lib/birthday-config";
-import { FRAGMENT_TOTAL, journey } from "@/lib/journey-state";
+import { FRAGMENT_TOTAL, clampFragments, journey } from "@/lib/journey-state";
 
 /**
  * Chapter 9: kejar suratnya melintasi 6 zona (~90 detik).
@@ -50,6 +50,9 @@ export function RocketChase({ onCaught }: { onCaught: () => void }) {
   const [caughtLine, setCaughtLine] = useState<string | null>(null);
   const [notice, setNotice] = useState<string | null>(null);
   const [shake, setShake] = useState(0);
+  const [gate, setGate] = useState(0);
+  const [gateFill, setGateFill] = useState(0);
+  const [, setPing] = useState(0);
 
   const keys = useRef<Record<string, boolean>>({});
   const joystick = useRef({ dx: 0, dy: 0, active: false });
@@ -404,6 +407,7 @@ export function RocketChase({ onCaught }: { onCaught: () => void }) {
   const tilt = Math.max(-18, Math.min(18, st.vel.y * 0.35));
   const pullBack = t >= 44 && t < 48; // kamera mundur di nebula
   const progress = Math.min(1, t / END_T);
+  const energy = clampFragments(st.collected);
   const cameraScale = pullBack ? 0.5 : revealing ? 1 + Math.max(0, 1 - (t - REVEAL_START) / 3) * 0.25 : 1;
   const bigRock = t >= 15 && t < 21 ? (t - 15) / 6 : null;
   const comet = t >= 33 && t < 37 ? (t - 33) / 4 : null;
