@@ -297,7 +297,67 @@ export function RocketChase({ onCaught }: { onCaught: () => void }) {
         }
       }
       // pecahan kosmik opsional
-      while (st.fragIdx < FRAG_TIMES.length && t >= FRAG_TIMES[st.fragIdx]!) {
+      while (st.fragIdx < FRAGS.length && t >= FRAGS[st.fragIdx]!.t) {
+        st.frags.push({ id: ++st.id, x: 106, y: FRAGS[st.fragIdx]!.y });
+        st.fragIdx++;
+      }
+
+      // LASER: Spasi / F di desktop, tombol LASER di HP
+      st.fireCd = Math.max(0, st.fireCd - dtReal);
+      if ((k[" "] || k["f"] || fireReq.current) && st.fireCd <= 0 && !st.failing && !st.caught && !revealing) {
+        st.fireCd = 0.28;
+        st.shots.push({ id: ++st.id, x: st.rocket.x + 4, y: st.rocket.y });
+        audio.play("click");
+      }
+      st.shots.forEach((b) => (b.x += 140 * dtReal));
+      st.shots = st.shots.filter((b) => {
+        if (b.x > 105) return false;
+        const target = st.rocks.find((r) => !r.comet && toPx(r.x - b.x, r.y - b.y) < r.r + 8);
+        if (!target) return true;
+        st.rocks = st.rocks.filter((r) => r !== target);
+        burst(target.x, target.y, target.special ? "violet" : "gold");
+        audio.play("hit");
+        if (target.special) {
+          // asteroid bercahaya: peluang pecahan + progres quest
+          if (Math.random() < 0.6) st.frags.push({ id: ++st.id, x: target.x, y: target.y });
+          if (zone.name === "asteroid field" && !st.questA.done) {
+            st.questA.count += 1;
+            if (st.questA.count >= 3) {
+              st.questA.done = true;
+              flash("Quest complete · +1");
+              award(st.rocket.x, st.rocket.y);
+            }
+          }
+        }
+        return false;
+      });
+
+      // QUEST KABEL di nebula: terbang melewati relay 1 → 2 → 3
+      if (zone.name === "nebula" && !st.cable.done) {
+        if (!st.cable.active && t >= zone.start + 1.5) {
+          st.cable.active = true;
+          flash("Connect the relays · 1 → 2 → 3", 2200);
+        }
+        const node = CABLE_NODES[st.cable.step];
+        if (st.cable.active && node && toPx(node.x - st.rocket.x, node.y - st.rocket.y) < 40) {
+          st.cable.step += 1;
+          audio.play("chime");
+          burst(node.x, node.y, "violet");
+          if (st.cable.step >= CABLE_NODES.length) {
+            st.cable.done = true;
+            audio.play("success");
+            flash("Relay connected · +2");
+            award(node.x, node.y);
+            later(() => award(st.rocket.x, st.rocket.y), 350);
+            later(() => (st.cable.active = false), 1200);
+          }
+        }
+      } else if (zone.name !== "nebula" && st.cable.active && !st.cable.done) {
+        st.cable.active = false; // waktu habis, jalan terus tanpa hukuman
+      }
+
+      // dummy loop untuk pecahan lama (dibiarkan kosong)
+      while (false as boolean) {
         st.frags.push({ id: ++st.id, x: 106, y: 18 + ((st.fragIdx * 37) % 60) });
         st.fragIdx++;
       }
@@ -330,11 +390,15 @@ export function RocketChase({ onCaught }: { onCaught: () => void }) {
             setNotice("Almost there.");
             later(() => {
               st.t = st.checkpoint;
-              st.fragIdx = FRAG_TIMES.filter((ft) => ft < st.checkpoint).length;
-              // kembalikan energi ke kondisi saat checkpoint (pecahan akan muncul lagi)
+              st.fragIdx = FRAGS.filter((f) => f.t < st.checkpoint).length;
+              // kembalikan energi & quest ke kondisi saat checkpoint (pecahan akan muncul lagi)
               st.collected = clampFragments(st.collectedAtCheckpoint);
               st.fragsTaken = st.fragsTakenAtCheckpoint;
               journey.fragments = st.collected;
+              journey.gates = st.gatesAtCheckpoint;
+              if (st.checkpoint <= ZONES[1]!.start) st.questA = { count: 0, done: false };
+              if (st.checkpoint <= ZONES[3]!.start) st.cable = { step: 0, active: false, done: false };
+              st.shots = [];
               st.rocks = [];
               st.frags = [];
               st.shields = 3;
@@ -515,7 +579,10 @@ export function RocketChase({ onCaught }: { onCaught: () => void }) {
             <span
               key={r.id}
               data-rock
-              className="pointer-events-none absolute -translate-x-1/2 -translate-y-1/2 rounded-[40%_55%_45%_60%] bg-secondary shadow-[inset_-4px_-4px_8px_rgba(0,0,0,0.5)]"
+              data-special={r.special ? "" : undefined}
+              className={`pointer-events-none absolute -translate-x-1/2 -translate-y-1/2 rounded-[40%_55%_45%_60%] bg-secondary shadow-[inset_-4px_-4px_8px_rgba(0,0,0,0.5)] ${
+                r.special ? "border-2 border-lavender/80 shadow-[0_0_18px_var(--lavender),inset_-4px_-4px_8px_rgba(0,0,0,0.5)]" : ""
+              }`}
               style={{
                 left: `${r.x}%`,
                 top: `${r.y}%`,
@@ -525,6 +592,45 @@ export function RocketChase({ onCaught }: { onCaught: () => void }) {
               }}
             />
           ))}
+
+          {/* laser */}
+          {st.shots.map((b) => (
+            <span
+              key={b.id}
+              className="pointer-events-none absolute h-[3px] w-8 -translate-y-1/2 rounded-full bg-lavender shadow-[0_0_10px_var(--lavender)]"
+              style={{ left: `${b.x}%`, top: `${b.y}%` }}
+            />
+          ))}
+
+          {/* quest kabel: relay yang harus disambung */}
+          {st.cable.active && (
+            <svg className="pointer-events-none absolute inset-0 h-full w-full" viewBox="0 0 100 100" preserveAspectRatio="none">
+              {CABLE_NODES.slice(0, st.cable.step).map((n, i) => {
+                const from = i === 0 ? null : CABLE_NODES[i - 1]!;
+                return from ? (
+                  <line key={i} x1={from.x} y1={from.y} x2={n.x} y2={n.y} stroke="var(--lavender)" strokeWidth="0.5" vectorEffect="non-scaling-stroke" style={{ filter: "drop-shadow(0 0 4px var(--lavender))" }} />
+                ) : null;
+              })}
+            </svg>
+          )}
+          {st.cable.active &&
+            CABLE_NODES.map((n, i) => (
+              <span
+                key={i}
+                data-relay={i}
+                className={`pointer-events-none absolute grid h-10 w-10 -translate-x-1/2 -translate-y-1/2 place-items-center rounded-full border-2 text-[10px] ${
+                  i < st.cable.step
+                    ? "border-lavender bg-lavender/30 text-lavender shadow-[0_0_20px_var(--lavender)]"
+                    : i === st.cable.step
+                      ? "animate-pulse-soft border-lavender/70 text-lavender"
+                      : "border-border text-muted-foreground"
+                }`}
+                style={{ left: `${n.x}%`, top: `${n.y}%` }}
+              >
+                {i + 1}
+              </span>
+            ))}
+
 
           {/* pecahan kosmik: kristal cyan-violet berputar */}
           {st.frags.map((f) => (
@@ -691,7 +797,29 @@ export function RocketChase({ onCaught }: { onCaught: () => void }) {
         </p>
       )}
 
+      {quest && !st.caught && (
+        <p className="pointer-events-none absolute top-[calc(max(1rem,env(safe-area-inset-top))+5.5rem)] z-40 w-full text-center text-[10px] tracking-[0.25em] text-lavender">
+          {quest}
+        </p>
+      )}
+
       {!st.caught && !revealing && <Joystick joystick={joystick} />}
+      {!st.caught && !revealing && (
+        <button
+          type="button"
+          aria-label="laser"
+          onPointerDown={(e) => {
+            e.preventDefault();
+            fireReq.current = true;
+          }}
+          onPointerUp={() => (fireReq.current = false)}
+          onPointerLeave={() => (fireReq.current = false)}
+          onPointerCancel={() => (fireReq.current = false)}
+          className="absolute bottom-[max(1.5rem,env(safe-area-inset-bottom))] right-5 z-50 grid h-16 w-16 cursor-pointer touch-none select-none place-items-center rounded-full border border-lavender/40 bg-violet/30 text-[10px] tracking-[0.2em] text-lavender backdrop-blur-md active:scale-95"
+        >
+          LASER
+        </button>
+      )}
     </Scene>
   );
 }
