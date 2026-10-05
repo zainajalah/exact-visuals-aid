@@ -69,6 +69,7 @@ export function RocketChase({ onCaught }: { onCaught: () => void }) {
 
   const keys = useRef<Record<string, boolean>>({});
   const joystick = useRef({ dx: 0, dy: 0, active: false });
+  const fireReq = useRef(false);
   const s = useRef({
     t: 0,
     rocket: { x: 18, y: 55 },
@@ -86,6 +87,11 @@ export function RocketChase({ onCaught }: { onCaught: () => void }) {
     fragsTaken: 0,
     fragsTakenAtCheckpoint: 0,
     gating: false,
+    gatesAtCheckpoint: 0,
+    shots: [] as Shot[],
+    fireCd: 0,
+    questA: { count: 0, done: false },
+    cable: { step: 0, active: false, done: false },
     bursts: [] as Burst[],
     spawnAcc: 0,
     checkpoint: 0,
@@ -103,7 +109,7 @@ export function RocketChase({ onCaught }: { onCaught: () => void }) {
     setMood(0.9);
     const down = (e: KeyboardEvent) => {
       keys.current[e.key.toLowerCase()] = true;
-      if (e.key.startsWith("Arrow")) e.preventDefault();
+      if (e.key.startsWith("Arrow") || e.key === " ") e.preventDefault();
     };
     const up = (e: KeyboardEvent) => {
       keys.current[e.key.toLowerCase()] = false;
@@ -178,7 +184,7 @@ export function RocketChase({ onCaught }: { onCaught: () => void }) {
         setGate(3);
         audio.play("whoosh");
         journey.gates += 1;
-        flash("Gate open.", 1400);
+        flash(journey.gates === 1 ? "Gate open." : "Ancient relay awakened.", 1400);
       }, 6200);
       later(() => {
         setGate(0);
@@ -386,7 +392,7 @@ export function RocketChase({ onCaught }: { onCaught: () => void }) {
       st.frags = st.frags.filter((f) => f.x > -5);
 
       // tabrakan
-      if (!st.failing && !st.caught && st.invuln <= 0) {
+      if (!st.failing && !st.caught && !st.gating && st.invuln <= 0) {
         const hit = st.rocks.find(
           (r) => toPx(r.x - st.rocket.x, r.y - st.rocket.y) < r.r + 12,
         );
@@ -485,6 +491,13 @@ export function RocketChase({ onCaught }: { onCaught: () => void }) {
   const pullBack = t >= 44 && t < 48; // kamera mundur di nebula
   const progress = Math.min(1, t / END_T);
   const energy = clampFragments(st.collected);
+  const zn = ZONES[zoneAt(t)]!.name;
+  const quest =
+    zn === "asteroid field" && !st.questA.done
+      ? `QUEST · GLOWING ASTEROIDS ${st.questA.count}/3`
+      : zn === "nebula" && st.cable.active && !st.cable.done
+        ? `QUEST · RELAY ${st.cable.step}/3`
+        : null;
   const cameraScale = pullBack ? 0.5 : revealing ? 1 + Math.max(0, 1 - (t - REVEAL_START) / 3) * 0.25 : 1;
   const bigRock = t >= 15 && t < 21 ? (t - 15) / 6 : null;
   const comet = t >= 33 && t < 37 ? (t - 33) / 4 : null;
