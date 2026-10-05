@@ -31,9 +31,22 @@ const CHECKPOINT_NAMES: Record<number, string> = {
   68: "Checkpoint 3 · Wormhole",
   86: "Checkpoint 4 · Final Chase",
 };
-const FRAG_TIMES = [4, 9, 17, 24, 30, 37, 47, 57, 62, 66];
+/** Pecahan di jalur (urut waktu). Jalur atas planet = rute berisiko, lebih banyak pecahan. */
+const FRAGS: { t: number; y: number }[] = [
+  { t: 4, y: 30 }, { t: 9, y: 62 }, { t: 17, y: 44 }, { t: 24, y: 70 }, { t: 30, y: 26 },
+  { t: 37, y: 52 }, { t: 47, y: 34 },
+  { t: 56, y: 20 }, { t: 57, y: 68 }, { t: 59, y: 26 }, { t: 61, y: 18 }, { t: 62, y: 70 },
+  { t: 64, y: 24 }, { t: 66, y: 72 },
+  { t: 88, y: 30 }, { t: 91, y: 60 }, { t: 94, y: 40 }, { t: 97, y: 55 },
+];
+const CABLE_NODES = [
+  { x: 30, y: 28 },
+  { x: 55, y: 68 },
+  { x: 80, y: 38 },
+];
 
-type Rock = { id: number; x: number; y: number; r: number; vx: number; vy: number; rot: number; comet?: boolean };
+type Rock = { id: number; x: number; y: number; r: number; vx: number; vy: number; rot: number; comet?: boolean; special?: boolean };
+type Shot = { id: number; x: number; y: number };
 type Frag = { id: number; x: number; y: number };
 type Burst = { id: number; x: number; y: number; tone: "gold" | "violet" | "red" };
 
@@ -213,7 +226,10 @@ export function RocketChase({ onCaught }: { onCaught: () => void }) {
           st.checkpoint = zone.start;
           st.collectedAtCheckpoint = st.collected;
           st.fragsTakenAtCheckpoint = st.fragsTaken;
+          st.gatesAtCheckpoint = journey.gates;
         }
+        if (zone.name === "asteroid field") flash("Quest · break 3 glowing asteroids", 2400);
+        if (zone.name === "planetary system") flash("Risky route ↑ · Safe route ↓", 2200);
       }
       const revealing = t >= REVEAL_START && t < ZONES[6]!.start;
       if (revealing && !st.revealed) {
@@ -285,14 +301,17 @@ export function RocketChase({ onCaught }: { onCaught: () => void }) {
             continue;
           }
           const r = 10 + Math.random() * 26;
+          // planet: jalur atas berisiko (lebih padat, lebih banyak pecahan), bawah aman
+          const risky = zone.name === "planetary system" && Math.random() < 0.7;
           st.rocks.push({
             id: ++st.id,
             x: 108,
-            y: 12 + Math.random() * 68,
+            y: risky ? 12 + Math.random() * 28 : 12 + Math.random() * 68,
             r,
             vx: -(zone.rockSpeed + Math.random() * 12),
             vy: (Math.random() - 0.5) * 6,
             rot: Math.random() * 360,
+            special: zone.name !== "comet pass" && Math.random() < 0.2,
           });
         }
       }
@@ -354,12 +373,6 @@ export function RocketChase({ onCaught }: { onCaught: () => void }) {
         }
       } else if (zone.name !== "nebula" && st.cable.active && !st.cable.done) {
         st.cable.active = false; // waktu habis, jalan terus tanpa hukuman
-      }
-
-      // dummy loop untuk pecahan lama (dibiarkan kosong)
-      while (false as boolean) {
-        st.frags.push({ id: ++st.id, x: 106, y: 18 + ((st.fragIdx * 37) % 60) });
-        st.fragIdx++;
       }
 
       const moveDt = dtReal * (revealing || zone.name === "deep space" ? 0.2 : 1);
