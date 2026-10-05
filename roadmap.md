@@ -8,3 +8,4 @@
 ## Open
 - [x] Rocket chase gaps: "Not yet." final chase, "Almost there.", checkpoint labels, SHIELD/COSMIC FRAGMENTS labels, diagonal comets, rocket tilt/trail/inertia.
 - [x] Full-experience brief: envelope-opening moment before letter, extra sounds (engine, impact, wormhole, capture, envelope).
+- [x] Cosmic energy system: 10 cap, checkpoint rollback, energy bar, gate event (2 cycles), laser + glowing asteroids, asteroid quest, relay cable quest, risky/safe route.

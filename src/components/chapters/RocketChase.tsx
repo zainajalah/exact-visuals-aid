@@ -31,9 +31,22 @@ const CHECKPOINT_NAMES: Record<number, string> = {
   68: "Checkpoint 3 · Wormhole",
   86: "Checkpoint 4 · Final Chase",
 };
-const FRAG_TIMES = [4, 9, 17, 24, 30, 37, 47, 57, 62, 66];
+/** Pecahan di jalur (urut waktu). Jalur atas planet = rute berisiko, lebih banyak pecahan. */
+const FRAGS: { t: number; y: number }[] = [
+  { t: 4, y: 30 }, { t: 9, y: 62 }, { t: 17, y: 44 }, { t: 24, y: 70 }, { t: 30, y: 26 },
+  { t: 37, y: 52 }, { t: 47, y: 34 },
+  { t: 56, y: 20 }, { t: 57, y: 68 }, { t: 59, y: 26 }, { t: 61, y: 18 }, { t: 62, y: 70 },
+  { t: 64, y: 24 }, { t: 66, y: 72 },
+  { t: 88, y: 30 }, { t: 91, y: 60 }, { t: 94, y: 40 }, { t: 97, y: 55 },
+];
+const CABLE_NODES = [
+  { x: 30, y: 28 },
+  { x: 55, y: 68 },
+  { x: 80, y: 38 },
+];
 
-type Rock = { id: number; x: number; y: number; r: number; vx: number; vy: number; rot: number; comet?: boolean };
+type Rock = { id: number; x: number; y: number; r: number; vx: number; vy: number; rot: number; comet?: boolean; special?: boolean };
+type Shot = { id: number; x: number; y: number };
 type Frag = { id: number; x: number; y: number };
 type Burst = { id: number; x: number; y: number; tone: "gold" | "violet" | "red" };
 
@@ -56,6 +69,7 @@ export function RocketChase({ onCaught }: { onCaught: () => void }) {
 
   const keys = useRef<Record<string, boolean>>({});
   const joystick = useRef({ dx: 0, dy: 0, active: false });
+  const fireReq = useRef(false);
   const s = useRef({
     t: 0,
     rocket: { x: 18, y: 55 },
@@ -73,6 +87,11 @@ export function RocketChase({ onCaught }: { onCaught: () => void }) {
     fragsTaken: 0,
     fragsTakenAtCheckpoint: 0,
     gating: false,
+    gatesAtCheckpoint: 0,
+    shots: [] as Shot[],
+    fireCd: 0,
+    questA: { count: 0, done: false },
+    cable: { step: 0, active: false, done: false },
     bursts: [] as Burst[],
     spawnAcc: 0,
     checkpoint: 0,
@@ -90,7 +109,7 @@ export function RocketChase({ onCaught }: { onCaught: () => void }) {
     setMood(0.9);
     const down = (e: KeyboardEvent) => {
       keys.current[e.key.toLowerCase()] = true;
-      if (e.key.startsWith("Arrow")) e.preventDefault();
+      if (e.key.startsWith("Arrow") || e.key === " ") e.preventDefault();
     };
     const up = (e: KeyboardEvent) => {
       keys.current[e.key.toLowerCase()] = false;
@@ -165,7 +184,7 @@ export function RocketChase({ onCaught }: { onCaught: () => void }) {
         setGate(3);
         audio.play("whoosh");
         journey.gates += 1;
-        flash("Gate open.", 1400);
+        flash(journey.gates === 1 ? "Gate open." : "Ancient relay awakened.", 1400);
       }, 6200);
       later(() => {
         setGate(0);
@@ -213,7 +232,10 @@ export function RocketChase({ onCaught }: { onCaught: () => void }) {
           st.checkpoint = zone.start;
           st.collectedAtCheckpoint = st.collected;
           st.fragsTakenAtCheckpoint = st.fragsTaken;
+          st.gatesAtCheckpoint = journey.gates;
         }
+        if (zone.name === "asteroid field") flash("Quest · break 3 glowing asteroids", 2400);
+        if (zone.name === "planetary system") flash("Risky route ↑ · Safe route ↓", 2200);
       }
       const revealing = t >= REVEAL_START && t < ZONES[6]!.start;
       if (revealing && !st.revealed) {
@@ -285,14 +307,17 @@ export function RocketChase({ onCaught }: { onCaught: () => void }) {
             continue;
           }
           const r = 10 + Math.random() * 26;
+          // planet: jalur atas berisiko (lebih padat, lebih banyak pecahan), bawah aman
+          const risky = zone.name === "planetary system" && Math.random() < 0.7;
           st.rocks.push({
             id: ++st.id,
             x: 108,
-            y: 12 + Math.random() * 68,
+            y: risky ? 12 + Math.random() * 28 : 12 + Math.random() * 68,
             r,
             vx: -(zone.rockSpeed + Math.random() * 12),
             vy: (Math.random() - 0.5) * 6,
             rot: Math.random() * 360,
+            special: zone.name !== "comet pass" && Math.random() < 0.2,
           });
         }
       }
@@ -356,12 +381,6 @@ export function RocketChase({ onCaught }: { onCaught: () => void }) {
         st.cable.active = false; // waktu habis, jalan terus tanpa hukuman
       }
 
-      // dummy loop untuk pecahan lama (dibiarkan kosong)
-      while (false as boolean) {
-        st.frags.push({ id: ++st.id, x: 106, y: 18 + ((st.fragIdx * 37) % 60) });
-        st.fragIdx++;
-      }
-
       const moveDt = dtReal * (revealing || zone.name === "deep space" ? 0.2 : 1);
       st.rocks.forEach((r) => {
         r.x += r.vx * moveDt;
@@ -373,7 +392,7 @@ export function RocketChase({ onCaught }: { onCaught: () => void }) {
       st.frags = st.frags.filter((f) => f.x > -5);
 
       // tabrakan
-      if (!st.failing && !st.caught && st.invuln <= 0) {
+      if (!st.failing && !st.caught && !st.gating && st.invuln <= 0) {
         const hit = st.rocks.find(
           (r) => toPx(r.x - st.rocket.x, r.y - st.rocket.y) < r.r + 12,
         );
@@ -472,6 +491,13 @@ export function RocketChase({ onCaught }: { onCaught: () => void }) {
   const pullBack = t >= 44 && t < 48; // kamera mundur di nebula
   const progress = Math.min(1, t / END_T);
   const energy = clampFragments(st.collected);
+  const zn = ZONES[zoneAt(t)]!.name;
+  const quest =
+    zn === "asteroid field" && !st.questA.done
+      ? `QUEST · GLOWING ASTEROIDS ${st.questA.count}/3`
+      : zn === "nebula" && st.cable.active && !st.cable.done
+        ? `QUEST · RELAY ${st.cable.step}/3`
+        : null;
   const cameraScale = pullBack ? 0.5 : revealing ? 1 + Math.max(0, 1 - (t - REVEAL_START) / 3) * 0.25 : 1;
   const bigRock = t >= 15 && t < 21 ? (t - 15) / 6 : null;
   const comet = t >= 33 && t < 37 ? (t - 33) / 4 : null;
