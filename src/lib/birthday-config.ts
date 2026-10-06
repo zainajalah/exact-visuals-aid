@@ -68,17 +68,7 @@ export const LETTER_TEXT = {
   assembled: "Suratnya sudah lengkap.",
 
   // Tulis surat kamu di sini. Setiap baris kosong = paragraf baru.
-  content: `Ericha,
-
-Selamat ulang tahun yang ke-20.
-
-Selamat ulang tahun. Semoga hari ini setenang yang kamu mau.
-
-Makasih untuk semua cerita yang udah kita lewatin. Yang lucu, yang random, yang biasa aja tapi ternyata paling diinget.
-
-Semoga di umur 20 ini kamu nggak buru-buru sama diri sendiri. Pelan-pelan aja, kamu udah cukup.
-
-Sampai jumpa di cerita berikutnya.`,
+  content: "Selamat ulang tahun, Ericha.\n\nNggak terasa ya, sudah sampai di hari ulang tahun kamu lagi. Aku sebenarnya agak bingung mau mulai dari mana, karena kalau mengingat semua hal yang pernah kita lewati, rasanya ada terlalu banyak hal kecil yang ternyata masih aku ingat sampai sekarang.\n\nDari awal cuma main bareng, ngobrol random, main MM2, TDS, game horror, sampai akhirnya bisa VC lama banget dan bahkan ketiduran sambil tetap nyambung. Entah kenapa hal-hal sesederhana itu justru jadi beberapa bagian yang paling berkesan buatku. Bahkan rekor VC kita yang sampai selama itu masih jadi salah satu hal yang kalau diingat bikin ngakak.\n\nMungkin waktu itu kita nggak pernah benar-benar mikirin kalau obrolan atau waktu yang kita habiskan bareng bakal jadi sesuatu yang berkesan. Tapi ternyata iya. Ada banyak momen yang kelihatannya biasa saja saat dijalani, tapi setelah waktu berlalu malah jadi sesuatu yang cukup berarti.\n\nJyujyur...\n\nDi umur kamu yang baru ini, semoga banyak hal baik datang ke kamu. Semoga kuliah, kehidupan, orang-orang di sekitar kamu, dan semua hal yang sedang kamu perjuangkan bisa berjalan semakin baik. Kalau ada hari yang berat, semoga kamu selalu punya alasan untuk tetap melangkah dan menemukan sesuatu yang bisa bikin kamu tersenyum lagi.\n\nDan semoga suatu hari nanti, ketika kita sama-sama sudah jauh lebih sibuk dengan kehidupan masing-masing, kita masih bisa mengingat masa-masa ini sebagai salah satu bagian kecil yang pernah membuat hidup terasa menyenangkan.\n\nSelamat ulang tahun sekali lagi, Ericha.\n\nSemoga tahun ini menjadi salah satu tahun terbaik buat kamu. Jaga diri baik-baik, jangan terlalu keras sama diri sendiri, dan semoga semua hal yang kamu harapkan pelan-pelan bisa sampai ke kamu.\n\nDamn, singkat saja u udah tua. Ingat umur ya.\n\nTerima kasih sudah pernah menjadi bagian dari banyak cerita yang sampai sekarang masih aku ingat.",
 };
 
 // ==========================
