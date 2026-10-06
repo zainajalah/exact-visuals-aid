@@ -4,11 +4,11 @@ import { CONFIG, GALLERY_TEXT, SECRET_TEXT } from "@/lib/birthday-config";
 import { audio, setMood } from "@/lib/audio-engine";
 
 const LAYOUT = [
-  { top: "0%", left: "4%", tilt: "-7deg", delay: "0s" },
-  { top: "11%", left: "52%", tilt: "6deg", delay: "0.8s" },
-  { top: "30%", left: "16%", tilt: "3deg", delay: "1.6s" },
-  { top: "45%", left: "54%", tilt: "-5deg", delay: "0.4s" },
-  { top: "62%", left: "22%", tilt: "8deg", delay: "1.2s" },
+  { top: "1%", left: "6%", tilt: "-6deg", delay: "0s" },
+  { top: "4%", left: "56%", tilt: "5deg", delay: "0.8s" },
+  { top: "33%", left: "31%", tilt: "-2deg", delay: "1.6s" },
+  { top: "62%", left: "6%", tilt: "4deg", delay: "0.4s" },
+  { top: "64%", left: "56%", tilt: "-5deg", delay: "1.2s" },
 ];
 
 function Polaroid({
@@ -24,14 +24,14 @@ function Polaroid({
   const showImage = Boolean(src) && !broken;
   return (
     <div className="paper-surface w-full rounded-[4px] p-2 pb-8">
-      <div className={`relative w-full overflow-hidden rounded-[2px] bg-secondary ${showImage ? "" : "aspect-4/5"}`}>
+      <div className="relative aspect-4/5 w-full overflow-hidden rounded-[2px] bg-secondary">
         {showImage ? (
           <img
             src={src}
             alt={caption}
             loading="lazy"
             onError={() => setBroken(true)}
-            className="block h-auto max-h-[240px] w-full object-contain"
+            className="h-full w-full object-cover"
           />
         ) : (
           <div className="nebula grid h-full w-full place-items-center text-center">
