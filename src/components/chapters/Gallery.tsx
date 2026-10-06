@@ -24,14 +24,14 @@ function Polaroid({
   const showImage = Boolean(src) && !broken;
   return (
     <div className="paper-surface w-full rounded-[4px] p-2 pb-8">
-      <div className="relative aspect-4/5 w-full overflow-hidden rounded-[2px] bg-secondary">
+      <div className={`relative w-full overflow-hidden rounded-[2px] bg-secondary ${showImage ? "" : "aspect-4/5"}`}>
         {showImage ? (
           <img
             src={src}
             alt={caption}
             loading="lazy"
             onError={() => setBroken(true)}
-            className="h-full w-full object-cover"
+            className="block h-auto max-h-[240px] w-full object-contain"
           />
         ) : (
           <div className="nebula grid h-full w-full place-items-center text-center">

@@ -1,5 +1,9 @@
 import backsound from "@/assets/backsound.mp3.asset.json";
 import fotoRandom from "@/assets/foto-random.jpg.asset.json";
+import foto2 from "@/assets/foto-2.jpg.asset.json";
+import foto3 from "@/assets/foto-3.jpg.asset.json";
+import foto4 from "@/assets/foto-4.jpg.asset.json";
+import foto5 from "@/assets/foto-5.jpg.asset.json";
 
 // ==========================
 // EDIT SEMUA ISI WEBSITE DI FILE INI
@@ -14,7 +18,7 @@ export const CONFIG = {
   // Ganti dengan link foto (https://...) atau taruh file di folder public/
   // lalu tulis "/foto1.jpg". Kosongkan untuk memakai placeholder.
   // ==========================
-  photos: [fotoRandom.url, "", "", "", ""],
+  photos: [fotoRandom.url, foto2.url, foto3.url, foto4.url, foto5.url],
 
   captions: [
     "game random",
