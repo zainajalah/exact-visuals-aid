@@ -139,13 +139,13 @@
 }
 
 @utility paper-surface {
-  background:
-    radial-gradient(
-      120% 90% at 50% 0%,
-      oklch(0.98 0.02 85) 0%,
-      var(--paper) 55%,
-      oklch(0.9 0.03 80) 100%
-    );
+  background-color: var(--paper);
+  background-image: radial-gradient(
+    120% 90% at 50% 0%,
+    oklch(0.98 0.02 85) 0%,
+    var(--paper) 55%,
+    oklch(0.9 0.03 80) 100%
+  );
   box-shadow: var(--shadow-paper);
   color: var(--ink);
 }
