@@ -66,7 +66,7 @@ export function LetterScene({ onEnd }: { onEnd: () => void }) {
 
       {paperIn && (
         <div
-          className="fixed inset-0 z-40 flex justify-center overflow-y-auto overscroll-contain bg-background/60 backdrop-blur-sm"
+          className="fixed inset-0 z-40 flex justify-center overflow-y-auto overscroll-contain bg-background/40 backdrop-blur-sm"
           onClick={(e) => {
             if (e.target === e.currentTarget) closeLetter();
           }}
@@ -104,7 +104,7 @@ export function LetterScene({ onEnd }: { onEnd: () => void }) {
                       isFirst
                         ? "mb-8 font-display text-[26px] italic leading-snug sm:text-3xl"
                         : isMoment
-                          ? "mb-6 font-display text-[19px] italic leading-[1.8] text-ink/80"
+                          ? "mb-6 font-display text-[19px] italic leading-[1.8] text-ink/90"
                           : isLast
                             ? "mt-10 font-display text-[19px] italic leading-[1.8]"
                             : "mb-6 font-body text-[16px] leading-[1.9] sm:text-[17px]"
@@ -114,7 +114,7 @@ export function LetterScene({ onEnd }: { onEnd: () => void }) {
                   </p>
                 );
               })}
-              <p className="mt-8 text-right font-display text-lg italic text-ink/60">— han ✦</p>
+              <p className="mt-8 text-right font-display text-lg italic text-ink/75">— han ✦</p>
             </div>
           </article>
         </div>
